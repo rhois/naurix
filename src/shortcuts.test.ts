@@ -68,3 +68,9 @@ test("Ctrl+Shift+C/V copy and paste only outside macOS", () => {
   expect(clipboardShortcut(ctrl("KeyC"), false)).toBeNull(); // SIGINT stays with the shell
   expect(clipboardShortcut(ctrl("KeyC", { shiftKey: true }), true)).toBeNull();
 });
+
+test("find: Cmd+F on macOS, Ctrl+Shift+F elsewhere (Ctrl+F stays with the terminal)", () => {
+  expect(mac(key("KeyF"))).toBe("find");
+  expect(other(key("KeyF", { metaKey: false, ctrlKey: true, shiftKey: true }))).toBe("find");
+  expect(other(key("KeyF", { metaKey: false, ctrlKey: true }))).toBeNull();
+});

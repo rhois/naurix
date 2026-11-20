@@ -5,6 +5,7 @@ import { registerDevTerminal, unregisterDevTerminal } from "../../dev/devTermina
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
+import { SearchAddon } from "@xterm/addon-search";
 import "@xterm/xterm/css/xterm.css";
 import { AckBatcher } from "./ackBatcher";
 import { useStore } from "../../state/store";
@@ -15,6 +16,8 @@ import { terminalApi, type ExitPayload } from "./api";
 import { sessionRegistry } from "./registry";
 import { terminalHandles } from "./handles";
 import { IMAGE_PASTE_KEY, clipboardHasOnlyImage } from "./attach";
+import { FindBar } from "./FindBar";
+import { SEARCH_TERMINAL_OPTIONS, safe, toSearchOptions } from "./search";
 
 export type TerminalState =
   | { kind: "starting" }
@@ -52,6 +55,7 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
   const initial = useRef({ workspaceId, paneId, title, agent, atRepoRoot: !!atRepoRoot });
   const termRef = useRef<Terminal | null>(null);
   const t = useStore((s) => s.settings.terminal);
+  const findOpen = useStore((s) => s.find?.paneId === paneId);
 
   // Follow the application theme. Assigning `options.theme` repaints in place: the Terminal object, its
   // PTY session, scrollback and cursor are untouched (nothing is recreated).
@@ -86,6 +90,7 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
     const el = host.current!;
     const cfg = useStore.getState().settings.terminal;
     const term = new Terminal({
+      ...SEARCH_TERMINAL_OPTIONS,
       scrollback: cfg.scrollback,
       cursorBlink: cfg.cursorBlink,
       cursorStyle: cfg.cursorStyle,
@@ -97,6 +102,8 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
     termRef.current = term;
     const fit = new FitAddon();
     term.loadAddon(fit);
+    const search = new SearchAddon();
+    term.loadAddon(search);
     term.open(el);
     // Hidden (display:none) panes have no size; fitting them would shrink the PTY to nothing.
     const safeFit = () => {
@@ -104,7 +111,18 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
     };
     safeFit();
     handle.current = { fit: safeFit, focus: () => term.focus() };
-    terminalHandles.set(initial.current.paneId, { hasSelection: () => term.hasSelection(), getSelection: () => term.getSelection(), paste: (t) => term.paste(t), focus: () => term.focus() });
+    terminalHandles.set(initial.current.paneId, { hasSelection: () => term.hasSelection(), getSelection: () => term.getSelection(), paste: (t) => term.paste(t), focus: () => term.focus(),
+      find: {
+        // A failing search must never take the UI down (it runs inside a React effect).
+        next: (q, o) => safe(() => search.findNext(q, toSearchOptions(o))),
+        prev: (q, o) => safe(() => search.findPrevious(q, toSearchOptions(o))),
+        clear: () => safe(() => search.clearDecorations()),
+        onResults: (cb) => {
+          const d = search.onDidChangeResults((e) => cb({ index: e.resultIndex, count: e.resultCount }));
+          return () => d.dispose();
+        },
+      },
+    });
     if (import.meta.env.DEV) registerDevTerminal(initial.current.paneId, term);
 
     let id: number | null = null;
@@ -212,6 +230,7 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
       if (id !== null && !exited) terminalApi.terminate(id).catch(() => {});
       endTurn(initial.current.paneId);
       handle.current = null;
+      if (useStore.getState().find?.paneId === initial.current.paneId) useStore.getState().closeFind();
       terminalHandles.delete(initial.current.paneId);
       if (import.meta.env.DEV) unregisterDevTerminal(initial.current.paneId);
       term.dispose();
@@ -248,6 +267,8 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
   }, [visible, t.renderer]);
 
   return (
+    <div className="relative h-full w-full">
+    {findOpen && <FindBar paneId={paneId} />}
     <div
       ref={host}
       data-pane={paneId}
@@ -258,5 +279,6 @@ export function TerminalView({ workspaceId, paneId, title, visible, focused, age
         useStore.getState().openContextMenu({ x: e.clientX, y: e.clientY, paneId: initial.current.paneId });
       }}
     />
+    </div>
   );
 }

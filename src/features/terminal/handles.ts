@@ -1,3 +1,5 @@
+import type { FindOptions, FindResults } from "./search";
+
 /**
  * pane id -> imperative handle of its terminal (for the context menu). Kept outside React state:
  * terminal contents and selections never enter the store.
@@ -8,6 +10,15 @@ export type TerminalHandle = {
   /** Paste with bracketed-paste handling (xterm decides based on the app's mode). */
   paste: (text: string) => void;
   focus: () => void;
+  /** Search the pane's retained buffer (TERM-010). The query is never stored. */
+  find: {
+    next: (query: string, o: FindOptions) => void;
+    prev: (query: string, o: FindOptions) => void;
+    /** Remove highlights and the selection the search made. */
+    clear: () => void;
+    /** Subscribe to match counts; returns the unsubscribe function. */
+    onResults: (cb: (r: FindResults) => void) => () => void;
+  };
 };
 
 const handles = new Map<string, TerminalHandle>();

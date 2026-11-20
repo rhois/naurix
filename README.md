@@ -135,6 +135,7 @@ Open the `.dmg` and drag **Naurix** into **Applications**. Notes:
 | ⌘1 … ⌘9 | Go to tab N |
 | ⇧⌘R | Rename tab (also: double-click the tab) |
 | ⇧⌘A | Launch an AI agent |
+| ⌘F | Find in the terminal (Ctrl+Shift+F on Linux and Windows). Enter / Shift+Enter: next / previous, Esc: close. Plain-text search of the retained scrollback; the query is never stored |
 
 **Attach files:** drag files from Finder / Explorer onto a pane and Naurix types their quoted paths at the cursor (no Enter, nothing is read or run; agents such as Claude Code turn an image path into an attachment). **Screenshots:** with an image on the clipboard, paste as usual (⌘V on macOS) and Naurix sends Ctrl+V to the program, which is how agent CLIs read a clipboard image. On Linux and Windows press **Ctrl+V** (not Ctrl+Shift+V, which pastes text). Plain-text paste is unchanged.
 

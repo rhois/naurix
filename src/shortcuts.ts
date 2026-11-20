@@ -7,7 +7,7 @@
  */
 export type ShortcutId =
   | "palette" | "newTab" | "closePane" | "splitRight" | "splitDown"
-  | "nextTab" | "prevTab" | "nextPane" | "prevPane" | "addWorkspace" | "renameTab" | "launchAgent" | "settings";
+  | "nextTab" | "prevTab" | "nextPane" | "prevPane" | "addWorkspace" | "renameTab" | "launchAgent" | "settings" | "find";
 
 export type Shortcut = { code: string; shift?: boolean; alt?: boolean; label: string };
 export type ShortcutTable = Record<ShortcutId, Shortcut>;
@@ -28,6 +28,7 @@ export const MAC_SHORTCUTS: ShortcutTable = {
   renameTab: { code: "KeyR", shift: true, label: "⇧⌘R" },
   launchAgent: { code: "KeyA", shift: true, label: "⇧⌘A" },
   settings: { code: "Comma", label: "⌘," },
+  find: { code: "KeyF", label: "⌘F" },
 };
 
 export const OTHER_SHORTCUTS: ShortcutTable = {
@@ -44,6 +45,7 @@ export const OTHER_SHORTCUTS: ShortcutTable = {
   renameTab: { code: "KeyR", shift: true, label: "Ctrl+Shift+R" },
   launchAgent: { code: "KeyA", shift: true, label: "Ctrl+Shift+A" },
   settings: { code: "Comma", label: "Ctrl+," },
+  find: { code: "KeyF", shift: true, label: "Ctrl+Shift+F" },
 };
 
 export const SHORTCUTS: ShortcutTable = IS_MAC ? MAC_SHORTCUTS : OTHER_SHORTCUTS;

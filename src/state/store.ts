@@ -75,6 +75,10 @@ type State = {
   newTab: () => void;
   splitActive: (dir: SplitDir) => void;
   splitPaneAt: (paneId: string, dir: SplitDir, placement: Placement) => void;
+  /** Which pane shows its find bar (TERM-010). Holds no query: that stays inside the FindBar. `nonce` re-focuses an open bar. */
+  find: { paneId: string; nonce: number } | null;
+  openFind: (paneId: string) => void;
+  closeFind: () => void;
   contextMenu: { x: number; y: number; paneId: string } | null;
   openContextMenu: (m: { x: number; y: number; paneId: string } | null) => void;
   closeActivePane: () => void;
@@ -338,6 +342,10 @@ export const useStore = create<State>()((set, get) => {
         tabs: sp.tabs.map((t) => (t.id === found.tab.id ? { ...t, layout: splitPane(t.layout, paneId, dir, newPane, uid("s"), placement), activePaneId: newPane } : t)),
       }));
     },
+
+    find: null,
+    openFind: (paneId) => set((s) => ({ find: { paneId, nonce: s.find?.paneId === paneId ? s.find.nonce + 1 : 0 } })),
+    closeFind: () => set({ find: null }),
 
     contextMenu: null,
     openContextMenu: (contextMenu) => set({ contextMenu }),

@@ -31,6 +31,7 @@ export function buildActions(): Action[] {
       { id: "splitDown", title: "Split pane down", shortcut: sc("splitDown"), run: () => s.splitActive("col") },
       { id: "closePane", title: "Close pane", shortcut: sc("closePane"), run: s.closeActivePane },
       { id: "closeTab", title: "Close tab", run: () => s.closeTab(activeTab(s)!.id) },
+      { id: "find", title: "Find in terminal", shortcut: sc("find"), run: () => s.openFind(activeTab(s)!.activePaneId) },
       { id: "renameTab", title: "Rename tab…", shortcut: sc("renameTab"), run: () => s.renameTabWithPrompt() },
       { id: "nextPane", title: "Focus next pane", shortcut: sc("nextPane"), run: () => s.stepPane(1) },
       { id: "prevPane", title: "Focus previous pane", shortcut: sc("prevPane"), run: () => s.stepPane(-1) },
